@@ -10,15 +10,13 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 
-import de.blinkt.openvpn.OpenVpnConnector;
+import com.singun.openvpn.wrapper.OpenVpnConnectWrapper;
+
 import de.blinkt.openvpn.core.VpnStatus;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+public class MainActivity extends AppCompatActivity implements OpenVpnConnectWrapper.VpnStateListener {
+    OpenVpnConnectWrapper mVpnConnect;
 
-public class MainActivity extends AppCompatActivity implements VpnStatus.StateListener {
     TextView mStatusView;
     FloatingActionButton mActionButton;
 
@@ -29,21 +27,24 @@ public class MainActivity extends AppCompatActivity implements VpnStatus.StateLi
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        mVpnConnect = new OpenVpnConnectWrapper();
+        mVpnConnect.init(this, this);
+
         mStatusView = (TextView) findViewById(R.id.status);
         mActionButton = (FloatingActionButton) findViewById(R.id.fab);
         mActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                connectOrDisconnect();
+                mVpnConnect.connectOrDisconnect();
             }
         });
-
-        VpnStatus.addStateListener(this);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
+
+        mVpnConnect.unInit();
     }
 
     @Override
@@ -68,8 +69,7 @@ public class MainActivity extends AppCompatActivity implements VpnStatus.StateLi
         return super.onOptionsItemSelected(item);
     }
 
-    private void updateVpnUIStatus(VpnStatus.ConnectionStatus level) {
-        String stateMessage = VpnStatus.getLastCleanLogMessage(this);
+    private void updateVpnUIStatus(VpnStatus.ConnectionStatus level, String stateMessage) {
         if (TextUtils.isEmpty(stateMessage)) {
             stateMessage = getString(R.string.state_welcome);
         }
@@ -85,46 +85,8 @@ public class MainActivity extends AppCompatActivity implements VpnStatus.StateLi
         }
     }
 
-    private void connectOrDisconnect() {
-        boolean isActive = VpnStatus.isVPNActive();
-        if (isActive) {
-            disconnectFromVpn();
-        } else {
-            connectToVpn();
-        }
-    }
-
-    private void connectToVpn() {
-        try {
-            InputStream conf = getAssets().open("test_config.ovpn");
-            InputStreamReader isr = new InputStreamReader(conf);
-            BufferedReader br = new BufferedReader(isr);
-            String config = "";
-            String line;
-            while (true) {
-                line = br.readLine();
-                if (line == null)
-                    break;
-                config += line + "\n";
-            }
-            br.readLine();
-            OpenVpnConnector.connectToVpn(this, config, null, null);
-        } catch (IOException | RuntimeException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void disconnectFromVpn() {
-        OpenVpnConnector.disconnectFromVpn(this);
-    }
-
     @Override
-    public void updateState(String state, String logmessage, int localizedResId, final VpnStatus.ConnectionStatus level) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                updateVpnUIStatus(level);
-            }
-        });
+    public void onStateChange(VpnStatus.ConnectionStatus level, String message) {
+        updateVpnUIStatus(level,message);
     }
 }

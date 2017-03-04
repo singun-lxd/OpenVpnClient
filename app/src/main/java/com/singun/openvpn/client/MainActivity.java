@@ -4,19 +4,23 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 
 import de.blinkt.openvpn.OpenVpnConnector;
+import de.blinkt.openvpn.core.VpnStatus;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-public class MainActivity extends AppCompatActivity {
-    private boolean mConnected;
+public class MainActivity extends AppCompatActivity implements VpnStatus.StateListener {
+    TextView mStatusView;
+    FloatingActionButton mActionButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,13 +29,21 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-       FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        mStatusView = (TextView) findViewById(R.id.status);
+        mActionButton = (FloatingActionButton) findViewById(R.id.fab);
+        mActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 connectOrDisconnect();
             }
         });
+
+        VpnStatus.addStateListener(this);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
     }
 
     @Override
@@ -56,13 +68,29 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    private void updateVpnUIStatus(VpnStatus.ConnectionStatus level) {
+        String stateMessage = VpnStatus.getLastCleanLogMessage(this);
+        if (TextUtils.isEmpty(stateMessage)) {
+            stateMessage = getString(R.string.state_welcome);
+        }
+        mStatusView.setText(stateMessage);
+        if (level == VpnStatus.ConnectionStatus.LEVEL_CONNECTED) {
+            mActionButton.setImageResource(android.R.drawable.ic_menu_close_clear_cancel);
+            mActionButton.setEnabled(true);
+        } else if (level == VpnStatus.ConnectionStatus.LEVEL_NOTCONNECTED) {
+            mActionButton.setImageResource(android.R.drawable.ic_menu_send);
+            mActionButton.setEnabled(true);
+        } else {
+            mActionButton.setEnabled(false);
+        }
+    }
+
     private void connectOrDisconnect() {
-        if (mConnected) {
+        boolean isActive = VpnStatus.isVPNActive();
+        if (isActive) {
             disconnectFromVpn();
-            mConnected = false;
         } else {
             connectToVpn();
-            mConnected = true;
         }
     }
 
@@ -88,5 +116,15 @@ public class MainActivity extends AppCompatActivity {
 
     private void disconnectFromVpn() {
         OpenVpnConnector.disconnectFromVpn(this);
+    }
+
+    @Override
+    public void updateState(String state, String logmessage, int localizedResId, final VpnStatus.ConnectionStatus level) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                updateVpnUIStatus(level);
+            }
+        });
     }
 }

@@ -1,8 +1,10 @@
-package com.singun.openvpn.client;
+package com.singun.openvpn.ui;
 
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.View;
@@ -10,32 +12,50 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 
-import com.singun.openvpn.wrapper.OpenVpnConnectWrapper;
+import com.singun.openvpn.client.R;
+import com.singun.openvpn.data.model.VpnConfigFile;
+import com.singun.openvpn.logic.VpnUiLogic;
+
+import java.util.List;
 
 import de.blinkt.openvpn.core.VpnStatus;
 
-public class MainActivity extends AppCompatActivity implements OpenVpnConnectWrapper.VpnStateListener {
-    OpenVpnConnectWrapper mVpnConnect;
+public class MainActivity extends AppCompatActivity implements VpnUiLogic.UiLogicListener {
+    private VpnUiLogic mVpnUiLogic;
 
-    TextView mStatusView;
-    FloatingActionButton mActionButton;
+    private TextView mStatusView;
+    private RecyclerView mRecyclerView;
+    private RecyclerView.LayoutManager mLayoutManager;
+    private FloatingActionButton mActionButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        initView();
+        initVpn();
+    }
+
+    private void initVpn() {
+        mVpnUiLogic = new VpnUiLogic();
+        mVpnUiLogic.init(this, this);
+    }
+
+    private void initView() {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        mVpnConnect = new OpenVpnConnectWrapper();
-        mVpnConnect.init(this, this);
-
         mStatusView = (TextView) findViewById(R.id.status);
+        mRecyclerView = (RecyclerView) findViewById(R.id.recyclerView);
+        mLayoutManager = new LinearLayoutManager(this);
+        mRecyclerView.setLayoutManager(mLayoutManager);
+
         mActionButton = (FloatingActionButton) findViewById(R.id.fab);
         mActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mVpnConnect.connectOrDisconnect();
+                mVpnUiLogic.connectOrDisconnect();
             }
         });
     }
@@ -44,7 +64,7 @@ public class MainActivity extends AppCompatActivity implements OpenVpnConnectWra
     public void onDestroy() {
         super.onDestroy();
 
-        mVpnConnect.unInit();
+        mVpnUiLogic.release();
     }
 
     @Override
@@ -86,7 +106,17 @@ public class MainActivity extends AppCompatActivity implements OpenVpnConnectWra
     }
 
     @Override
-    public void onStateChange(VpnStatus.ConnectionStatus level, String message) {
+    public void onVpnStateChange(VpnStatus.ConnectionStatus level, String message) {
         updateVpnUIStatus(level,message);
+    }
+
+    @Override
+    public void onDataUpdate(List<VpnConfigFile> listData) {
+        mRecyclerView.setAdapter(new VpnConfigListAdapter(listData));
+    }
+
+    @Override
+    public void onDataLoadFailed(String errMessage) {
+
     }
 }

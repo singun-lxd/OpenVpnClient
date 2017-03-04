@@ -25,7 +25,7 @@ public class OpenVpnConnectWrapper implements VpnStatus.StateListener {
         mConfig = new VpnAutoConfig(mContext);
     }
 
-    public void unInit() {
+    public void release() {
         VpnStatus.removeStateListener(this);
         mHandler = null;
         mContext = null;

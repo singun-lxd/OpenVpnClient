@@ -1,5 +1,5 @@
 # OpenVpnClient
-一个 VPN 连接客户端的 Demo
+一个 Android 平台下 VPN 连接客户端的 Demo
 
 - **VPN连接** ：基于 [ics-openvpn](https://github.com/schwabe/ics-openvpn) 实现VPN连接
 

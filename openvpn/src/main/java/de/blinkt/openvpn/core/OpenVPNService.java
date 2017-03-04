@@ -44,7 +44,7 @@ import java.util.Locale;
 import java.util.Vector;
 
 import de.blinkt.openvpn.BuildConfig;
-import de.blinkt.openvpn.DisconnectVPNActivity;
+import de.blinkt.openvpn.DisconnectVpnActivity;
 import de.blinkt.openvpn.R;
 import de.blinkt.openvpn.VpnProfile;
 import de.blinkt.openvpn.core.VpnStatus.ByteCountListener;
@@ -250,7 +250,7 @@ public class OpenVPNService extends VpnService implements StateListener, Callbac
 
             }
 
-            Intent disconnectVPN = new Intent(this, DisconnectVPNActivity.class);
+            Intent disconnectVPN = new Intent(this, DisconnectVpnActivity.class);
             disconnectVPN.setAction(DISCONNECT_VPN);
             PendingIntent disconnectPendingIntent = PendingIntent.getActivity(this, 0, disconnectVPN, 0);
 
@@ -290,7 +290,7 @@ public class OpenVPNService extends VpnService implements StateListener, Callbac
     }
 
     PendingIntent getLogPendingIntent() {
-        Intent disconnectVPN = new Intent(this, DisconnectVPNActivity.class);
+        Intent disconnectVPN = new Intent(this, DisconnectVpnActivity.class);
         disconnectVPN.setAction(DISCONNECT_VPN);
         PendingIntent disconnectPendingIntent = PendingIntent.getActivity(this, 0, disconnectVPN, 0);
         return disconnectPendingIntent;

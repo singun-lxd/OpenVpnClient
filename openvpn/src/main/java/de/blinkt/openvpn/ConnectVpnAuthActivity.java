@@ -7,10 +7,10 @@ import android.os.Bundle;
 import android.os.RemoteException;
 
 /**
- * Created by huangyifei on 16/11/15.
+ * Created by singun on 17/3/4.
  */
 
-public class VpnAuthAcitivity extends Activity {
+public class ConnectVpnAuthActivity extends Activity {
     public static final String KEY_CONFIG = "config";
     public static final String KEY_USERNAME = "username";
     public static final String KEY_PASSWORD = "password";
@@ -46,9 +46,8 @@ public class VpnAuthAcitivity extends Activity {
 
     private void startVpn() {
         try {
-            OpenVpnApi.startVpnInternal(this, mConfig, mUsername, mPw);
-        } catch (RemoteException e) {
-
+            OpenVpnConnector.startVpnInternal(this, mConfig, mUsername, mPw);
+        } catch (RuntimeException e) {
         }
     }
 }

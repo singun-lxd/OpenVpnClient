@@ -16,7 +16,7 @@ import de.blinkt.openvpn.core.ProfileManager;
 /**
  * Created by arne on 13.10.13.
  */
-public class DisconnectVPNActivity extends Activity implements DialogInterface.OnClickListener, DialogInterface.OnCancelListener {
+public class DisconnectVpnActivity extends Activity implements DialogInterface.OnClickListener, DialogInterface.OnCancelListener {
     protected OpenVPNService mService;
 
     private ServiceConnection mConnection = new ServiceConnection() {

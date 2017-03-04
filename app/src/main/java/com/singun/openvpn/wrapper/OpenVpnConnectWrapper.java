@@ -4,11 +4,6 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-
 import de.blinkt.openvpn.OpenVpnConnector;
 import de.blinkt.openvpn.core.VpnStatus;
 
@@ -20,12 +15,14 @@ public class OpenVpnConnectWrapper implements VpnStatus.StateListener {
     private Context mContext;
     private Handler mHandler;
     private VpnStateListener mListener;
+    private VpnAutoConfig mConfig;
 
     public void init(Context context, VpnStateListener listener) {
         mContext = context;
         mHandler= new Handler(Looper.getMainLooper());
         mListener = listener;
         VpnStatus.addStateListener(this);
+        mConfig = new VpnAutoConfig(mContext);
     }
 
     public void unInit() {
@@ -33,6 +30,7 @@ public class OpenVpnConnectWrapper implements VpnStatus.StateListener {
         mHandler = null;
         mContext = null;
         mListener = null;
+        mConfig = null;
     }
 
     public void connectOrDisconnect() {
@@ -46,20 +44,9 @@ public class OpenVpnConnectWrapper implements VpnStatus.StateListener {
 
     public void connectToVpn() {
         try {
-            InputStream conf = mContext.getAssets().open("test_config.ovpn");
-            InputStreamReader isr = new InputStreamReader(conf);
-            BufferedReader br = new BufferedReader(isr);
-            String config = "";
-            String line;
-            while (true) {
-                line = br.readLine();
-                if (line == null)
-                    break;
-                config += line + "\n";
-            }
-            br.readLine();
+            String config = mConfig.getAutoConfig();
             OpenVpnConnector.connectToVpn(mContext, config, null, null);
-        } catch (IOException | RuntimeException e) {
+        } catch (RuntimeException e) {
             e.printStackTrace();
         }
     }

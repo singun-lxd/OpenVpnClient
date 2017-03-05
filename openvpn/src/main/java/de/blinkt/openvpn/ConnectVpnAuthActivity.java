@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.VpnService;
 import android.os.Bundle;
-import android.os.RemoteException;
 
 /**
  * Created by singun on 17/3/4.
@@ -17,7 +16,7 @@ public class ConnectVpnAuthActivity extends Activity {
 
     private String mConfig;
     private String mUsername;
-    private String mPw;
+    private String mPassword;
 
 
     @Override
@@ -25,7 +24,7 @@ public class ConnectVpnAuthActivity extends Activity {
         super.onCreate(savedInstanceState);
         mConfig = getIntent().getStringExtra(KEY_CONFIG);
         mUsername = getIntent().getStringExtra(KEY_USERNAME);
-        mPw = getIntent().getStringExtra(KEY_PASSWORD);
+        mPassword = getIntent().getStringExtra(KEY_PASSWORD);
         Intent intent = VpnService.prepare(this);
         if (intent != null) {
             startActivityForResult(intent, 0);
@@ -46,7 +45,7 @@ public class ConnectVpnAuthActivity extends Activity {
 
     private void startVpn() {
         try {
-            OpenVpnConnector.startVpnInternal(this, mConfig, mUsername, mPw);
+            OpenVpnConnector.startVpnInternal(this, mConfig, mUsername, mPassword);
         } catch (RuntimeException e) {
         }
     }
